@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ContentModelStore">
+    <e p="C:\Programming\AI programming assigment 2" t="IncludeRecursive">
+      <e p="AI programming assigment 2.sln" t="IncludeFlat" />
+      <e p="Assembly-CSharp.csproj" t="IncludeRecursive" />
+      <e p="Assets" t="Include">
+        <e p="Move.cs" t="Include" />
+        <e p="Scripts" t="Include">
+          <e p="EventManager.cs" t="Include" />
+          <e p="Grid" t="Include">
+            <e p="Grid.cs" t="Include" />
+            <e p="Node.cs" t="Include" />
+          </e>
+          <e p="Main.cs" t="Include" />
+          <e p="Materials.cs" t="Include" />
+          <e p="Pathfinding" t="Include">
+            <e p="Pathfinder.cs" t="Include" />
+            <e p="PathfindMaster.cs" t="Include" />
+          </e>
+          <e p="UI" t="Include">
+            <e p="IntVariable.cs" t="Include" />
+            <e p="TextSetter.cs" t="Include" />
+          </e>
+        </e>
+      </e>
+      <e p="obj" t="ExcludeRecursive" />
+      <e p="Packages" t="ExcludeRecursive" />
+      <e p="Temp\bin" t="ExcludeRecursive" />
+    </e>
+    <e p="C:\Users\Jari\.Rider2019.2\system\extResources" t="IncludeRecursive" />
+    <e p="C:\Users\Jari\.Rider2019.2\system\resharper-host\local\Transient\ReSharperHost\v192\SolutionCaches\_AI programming assigment 2.486733710.00" t="ExcludeRecursive" />
+  </component>
+</project>
