@@ -184,6 +184,11 @@ namespace Astar
 
             return _nodes[x, y, z];
         }
+
+        public Node GetNode(Vector3 pos)
+        {
+            return GetNode((int)pos.x, (int)pos.y, (int)pos.z);
+        }
         
         private bool IsWalkable(int x, int y, int z)
         {
@@ -323,6 +328,26 @@ namespace Astar
             }
 
             return neighbors;
+        }
+
+        public Vector3 GetRandomWalkableNode()
+        {
+            int loop = 100;
+
+            for (int i = 0; i < loop; i++)
+            {
+                var randomX = Random.Range(0, sizeX);
+                var randomZ = Random.Range(0, sizeZ);
+
+                var node = _nodes[randomX, 0, randomZ];
+                if (node.isWalkable)
+                {
+                    return node.GetNodeWorldPos();
+                }
+            }
+
+            Debug.LogError("Could not find walkable node");
+            return Vector3.zero;
         }
     }
 }

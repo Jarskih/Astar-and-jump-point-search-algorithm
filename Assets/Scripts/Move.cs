@@ -21,7 +21,7 @@ namespace Astar
     }
 
     // Update is called once per frame
-    void Update()
+    public void Tick()
     {
         if (Input.GetMouseButtonDown(0))
         {
@@ -33,18 +33,8 @@ namespace Astar
             _currentNode = _grid.GetNodeFromWorldPos(transform.position);
             PathfindMaster.GetInstance().RequestPathfind(_currentNode, node, UpdatePath, false);
         }
-
+        
         if (_path.Count > 0)
-        {
-            MoveAlongPath();
-        }
-    }
-
-    private void UpdatePath(List<Node> path)
-    {
-        _path = path;
-        _currentPathIndex = 0;
-        if (path.Count > 0)
         {
             for (int i = 0; i < _path.Count - 2; i++)
             {
@@ -52,8 +42,21 @@ namespace Astar
             }
         }
     }
+    
+    public void GetPath(Entity target, bool jumpSearch)
+    {
+        var targetNode = _grid.GetNodeFromWorldPos(target.transform.position);
+        var currentNode = _grid.GetNodeFromWorldPos(transform.position);
+        PathfindMaster.GetInstance().RequestPathfind(currentNode, targetNode, UpdatePath, jumpSearch);
+    }
 
-    private void MoveAlongPath()
+    private void UpdatePath(List<Node> path)
+    {
+        _path = path;
+        _currentPathIndex = 0;
+    }
+
+    public void MoveAlongPath()
     {
         var distance = Vector3.Distance(transform.position, _path[_currentPathIndex].GetNodeWorldPos());
         if(distance < 0.1f)
@@ -111,6 +114,11 @@ namespace Astar
             }
         }
         return retVal;
+    }
+
+    public bool HasPath()
+    {
+        return _path.Count != 0;
     }
 }
 }

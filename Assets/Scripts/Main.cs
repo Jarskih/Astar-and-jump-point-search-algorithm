@@ -11,9 +11,6 @@ namespace Astar
 
         [SerializeField] private Grid _grid;
         private PathfindMaster _pathfindMaster;
-        [SerializeField] private GameObject _starShip;
-        [SerializeField] private GameObject _spaceStation;
-        [SerializeField] private GameObject _fallenStar;
         void Start()
         {
             gameObject.AddComponent<EventManager>();
@@ -28,11 +25,29 @@ namespace Astar
 
             _pathfindMaster.Init(_grid);
 
-            _starShip.GetComponent<Move>().Init(_grid);
+            SpawnEntity("StarChaser", Entity.EntityType.StarChaser, true);
+            SpawnEntity("SpaceShip", Entity.EntityType.SpaceShip, false);
+            SpawnEntity("FallenStar", Entity.EntityType.FallenStar, false);
+            SpawnEntity("TradingPost", Entity.EntityType.TradingPost, false);
+        }
+
+        private void SpawnEntity(string name, Entity.EntityType type, bool aiActive)
+        {
+            var GO = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            GO.name = name;
+            var entity = GO.AddComponent<Entity>();
+            entity.transform.position = _grid.GetRandomWalkableNode();
+            entity.Init(_grid, type, aiActive);
+            EntityController.AddEntity(entity);
         }
 
         // Update is called once per frame
-        void Update() {
+        void Update()
+        {
+            foreach (var entity in EntityController.GetEnties())
+            {
+                entity.Tick();
+            }
         }
     }
 }

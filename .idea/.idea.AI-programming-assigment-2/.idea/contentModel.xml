@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ContentModelStore">
+    <e p="C:\Programming\AI-programming-assigment-2" t="IncludeRecursive">
+      <e p="AI-programming-assigment-2.sln" t="IncludeFlat" />
+      <e p="Assembly-CSharp.csproj" t="IncludeRecursive" />
+      <e p="Assets" t="Include">
+        <e p="Scripts" t="Include">
+          <e p="Collect.cs" t="Include" />
+          <e p="Drop.cs" t="Include" />
+          <e p="Entity.cs" t="Include" />
+          <e p="EntityController.cs" t="Include" />
+          <e p="EventManager.cs" t="Include" />
+          <e p="FSM" t="Include">
+            <e p="Action.cs" t="Include" />
+            <e p="Actions" t="Include">
+              <e p="DropAction.cs" t="Include" />
+              <e p="IdleAction.cs" t="Include" />
+              <e p="MoveAction.cs" t="Include" />
+              <e p="PickUpAction.cs" t="Include" />
+              <e p="RestAction.cs" t="Include" />
+            </e>
+            <e p="Decision.cs" t="Include" />
+            <e p="Decisions" t="Include">
+              <e p="DropDecision.cs" t="Include" />
+              <e p="IdleDecision.cs" t="Include" />
+              <e p="MoveDecision.cs" t="Include" />
+              <e p="PickUpDecision.cs" t="Include" />
+              <e p="RestDecision.cs" t="Include" />
+              <e p="StopRestingDecision.cs" t="Include" />
+            </e>
+            <e p="State.cs" t="Include" />
+            <e p="StateController.cs" t="Include" />
+            <e p="Transition.cs" t="Include" />
+          </e>
+          <e p="Grid" t="Include">
+            <e p="Grid.cs" t="Include" />
+            <e p="Node.cs" t="Include" />
+          </e>
+          <e p="Item.cs" t="Include" />
+          <e p="Main.cs" t="Include" />
+          <e p="Materials.cs" t="Include" />
+          <e p="Move.cs" t="Include" />
+          <e p="Pathfinding" t="Include">
+            <e p="Pathfinder.cs" t="Include" />
+            <e p="PathfindMaster.cs" t="Include" />
+          </e>
+          <e p="Stars.cs" t="Include" />
+          <e p="UI" t="Include">
+            <e p="IntVariable.cs" t="Include" />
+            <e p="TextSetter.cs" t="Include" />
+          </e>
+        </e>
+      </e>
+      <e p="obj" t="ExcludeRecursive" />
+      <e p="Packages" t="ExcludeRecursive" />
+      <e p="Temp\bin" t="ExcludeRecursive" />
+    </e>
+    <e p="C:\Users\Jari\.Rider2019.2\system\extResources" t="IncludeRecursive" />
+    <e p="C:\Users\Jari\.Rider2019.2\system\resharper-host\local\Transient\ReSharperHost\v192\SolutionCaches\_AI-programming-assigment-2.63380462.00" t="ExcludeRecursive" />
+  </component>
+</project>
