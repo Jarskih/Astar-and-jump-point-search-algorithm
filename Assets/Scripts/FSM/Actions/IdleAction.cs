@@ -10,7 +10,7 @@ namespace Astar
     {
         public override void Act(StateController controller)
         {
-            // Decide what to do and find path
+            controller.entity.Sense();
             controller.entity.Decide();
         }
     }

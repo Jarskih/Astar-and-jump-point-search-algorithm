@@ -21,21 +21,51 @@ namespace Astar
             _entities.Remove(entity);
         }
 
-        public static Entity GetEntity(Entity.EntityType entityType)
+        /// <summary>
+        /// Get first entity of right entity type. If no star entity is not found, refresh star entities.
+        /// </summary>
+        /// <param name="entityType"></param>
+        /// <param name="grid"></param>
+        /// <returns></returns>
+        public static Entity GetEntity(Entity.EntityType entityType, Grid grid)
         {
+            Entity entity = null;
             foreach (var e in _entities)
             {
+                if (!e.gameObject.activeInHierarchy)
+                {
+                    continue;
+                }
                 if (e.GetEntityType() == entityType)
                 {
-                    return e;
+                    entity = e;
                 }   
             }
-            return null;
+
+            if (entity == null)
+            {
+                ResetStars(grid);
+                return GetEntity(entityType, grid);
+            }
+
+            return entity;
         }
 
         public static List<Entity> GetEnties()
         {
             return _entities;
+        }
+
+        private static void ResetStars(Grid grid)
+        {
+            foreach (var e in _entities)
+            {
+                if (!e.gameObject.activeInHierarchy)
+                {
+                    e.transform.position = grid.GetRandomWalkableNode();
+                    e.gameObject.SetActive(true);
+                }
+            }
         }
     }
  }

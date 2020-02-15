@@ -9,7 +9,7 @@ namespace Astar
     {
         public override bool Decide(StateController controller)
         {
-            return controller.entity.NeedsRest();
+            return controller.entity.CanRest();
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.PlayerLoop;
 using UnityEngine.UI;
+using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
 namespace Astar
@@ -134,11 +135,14 @@ namespace Astar
             GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
             if (isWalkable)
             {
-                quad.GetComponent<MeshRenderer>().material = Resources.Load<Material>(Materials.Grass); 
+                quad.GetComponent<MeshRenderer>().material = Resources.Load<Material>(Materials.Walkable);
             }
             else
             {
-                quad.GetComponent<MeshRenderer>().material = Resources.Load<Material>(Materials.Wall);
+                quad.GetComponent<MeshRenderer>().material = Resources.Load<Material>(Materials.Blocked);
+                var asteroid = Resources.Load<GameObject>("Prefabs/Asteroids");
+                var asteroidObject = GameObject.Instantiate(asteroid, Vector3.zero, Quaternion.identity);
+                asteroidObject.transform.SetParent(quad.transform);
             }
             
             quad.transform.SetParent(parent.transform);

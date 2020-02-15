@@ -11,8 +11,8 @@ namespace Astar
 
         public delegate void PathfindingJobComplete(List<Node> path);
 
-        private List<Pathfinder> currentJobs;
-        private List<Pathfinder> todoJobs;
+        private List<Pathfinder> _currentJobs;
+        private List<Pathfinder> _todoJobs;
         private static PathfindMaster _instance;
 
         public static PathfindMaster GetInstance()
@@ -23,8 +23,8 @@ namespace Astar
         public void Init(Grid grid)
         {
             _instance = this;
-            currentJobs = new List<Pathfinder>();
-            todoJobs = new List<Pathfinder>();
+            _currentJobs = new List<Pathfinder>();
+            _todoJobs = new List<Pathfinder>();
             _grid = grid;
         }
 
@@ -51,25 +51,25 @@ namespace Astar
 
         public bool JobsDone()
         {
-            return todoJobs.Count == 0;
+            return _todoJobs.Count == 0;
         }
 
         private void Update()
         {
-            if (currentJobs == null)
+            if (_currentJobs == null)
             {
-                currentJobs = new List<Pathfinder>();
-                todoJobs = new List<Pathfinder>();
+                _currentJobs = new List<Pathfinder>();
+                _todoJobs = new List<Pathfinder>();
             }
 
             int i = 0;
 
-            while (i < currentJobs.Count)
+            while (i < _currentJobs.Count)
             {
-                if (currentJobs[i].JobDone)
+                if (_currentJobs[i].JobDone)
                 {
-                    currentJobs[i].NotifyComplete();
-                    currentJobs.RemoveAt(i);
+                    _currentJobs[i].NotifyComplete();
+                    _currentJobs.RemoveAt(i);
                 }
                 else
                 {
@@ -77,32 +77,23 @@ namespace Astar
                 }
             }
 
-            if (todoJobs.Count > 0 && currentJobs.Count < MaxJobs)
+            if (_todoJobs.Count > 0 && _currentJobs.Count < MaxJobs)
             {
-                Pathfinder job = todoJobs[0];
-                todoJobs.RemoveAt(0);
-                currentJobs.Add(job);
-
-                //Start a new thread
-
-                //Thread jobThread = new Thread(job.FindPath);
+                Pathfinder job = _todoJobs[0];
+                _todoJobs.RemoveAt(0);
+                _currentJobs.Add(job);
+                
                 ThreadPool.QueueUserWorkItem(
                     delegate {
                         job.FindPath(); 
                     }, null);
-                //jobThread.Start();
-
-                //As per the doc
-                //https://msdn.microsoft.com/en-us/library/system.threading.thread(v=vs.110).aspx
-                //It is not necessary to retain a reference to a Thread object once you have started the thread. 
-                //The thread continues to execute until the thread procedure is complete.               
             }
         }
 
         public void RequestPathfind(Node start, Node target, PathfindingJobComplete completeCallback, bool useJumpSearch = true)
         {
             Pathfinder newJob = new Pathfinder(_grid, start, target, completeCallback, useJumpSearch);
-            todoJobs.Add(newJob);
+            _todoJobs.Add(newJob);
         }
     }
 }

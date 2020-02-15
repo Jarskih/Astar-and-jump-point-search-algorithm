@@ -12,12 +12,18 @@ namespace Astar
     private Camera _camera;
     private Node _currentNode;
     private int _currentPathIndex;
-
+    private LineRenderer _lineRenderer;
     public void Init(Grid grid)
     {
         _grid = grid;
         _camera = Camera.main;
         _currentNode = _grid.GetNodeFromWorldPos(transform.position);
+        _lineRenderer = gameObject.AddComponent<LineRenderer>();
+        _lineRenderer.startWidth = 0.1f;
+        _lineRenderer.endWidth = 0.1f;
+        _lineRenderer.startColor = Color.white;
+        _lineRenderer.endColor = Color.white;
+        _lineRenderer.material = Resources.Load<Material>("Materials/Line");
     }
 
     // Update is called once per frame
@@ -33,14 +39,6 @@ namespace Astar
             _currentNode = _grid.GetNodeFromWorldPos(transform.position);
             PathfindMaster.GetInstance().RequestPathfind(_currentNode, node, UpdatePath, false);
         }
-        
-        if (_path.Count > 0)
-        {
-            for (int i = 0; i < _path.Count - 2; i++)
-            {
-                Debug.DrawLine(_path[i].GetNodeWorldPos(), _path[i + 1].GetNodeWorldPos());
-            }
-        }
     }
     
     public void GetPath(Entity target, bool jumpSearch)
@@ -54,6 +52,15 @@ namespace Astar
     {
         _path = path;
         _currentPathIndex = 0;
+        if (_path.Count > 0)
+        {
+            for (int i = 0; i < _path.Count; i++)
+            {
+                _lineRenderer.positionCount = path.Count;
+                _lineRenderer.SetPosition(i, _path[i].GetNodeWorldPos());
+               // Debug.DrawLine(_path[i].GetNodeWorldPos(), _path[i + 1].GetNodeWorldPos(), Color.white, 2.5f);
+            }
+        }
     }
 
     public void MoveAlongPath()

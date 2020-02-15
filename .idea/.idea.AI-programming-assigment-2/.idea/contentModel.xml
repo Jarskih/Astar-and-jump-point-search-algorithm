@@ -45,10 +45,37 @@
             <e p="Pathfinder.cs" t="Include" />
             <e p="PathfindMaster.cs" t="Include" />
           </e>
+          <e p="SimpleCameraController.cs" t="Include" />
           <e p="Stars.cs" t="Include" />
           <e p="UI" t="Include">
             <e p="IntVariable.cs" t="Include" />
             <e p="TextSetter.cs" t="Include" />
+          </e>
+        </e>
+        <e p="Vendor" t="Include">
+          <e p="Asteroids Pack" t="Include">
+            <e p="Assets" t="Include">
+              <e p="Scripts" t="Include">
+                <e p="RandomRotator.cs" t="Include" />
+              </e>
+            </e>
+          </e>
+          <e p="Bed &amp; Bath Furniture Pack" t="Include">
+            <e p="Documentation.txt" t="Include" />
+          </e>
+          <e p="Low Poly Space Station" t="Include">
+            <e p="Components" t="Include">
+              <e p="Scripts" t="Include">
+                <e p="RotationScript.cs" t="Include" />
+              </e>
+            </e>
+          </e>
+          <e p="Starfield Skybox" t="Include">
+            <e p="Demo" t="Include">
+              <e p="Script" t="Include">
+                <e p="LookCamera.cs" t="Include" />
+              </e>
+            </e>
           </e>
         </e>
       </e>

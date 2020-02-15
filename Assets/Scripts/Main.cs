@@ -11,6 +11,8 @@ namespace Astar
 
         [SerializeField] private Grid _grid;
         private PathfindMaster _pathfindMaster;
+        private int _numberOfStars = 5;
+
         void Start()
         {
             gameObject.AddComponent<EventManager>();
@@ -25,15 +27,19 @@ namespace Astar
 
             _pathfindMaster.Init(_grid);
 
-            SpawnEntity("StarChaser", Entity.EntityType.StarChaser, true);
-            SpawnEntity("SpaceShip", Entity.EntityType.SpaceShip, false);
-            SpawnEntity("FallenStar", Entity.EntityType.FallenStar, false);
-            SpawnEntity("TradingPost", Entity.EntityType.TradingPost, false);
+            SpawnEntity("StarChaser", Entity.EntityType.StarChaser, true, "Prefabs/StarChaser");
+            SpawnEntity("SpaceShip", Entity.EntityType.SpaceShip, false, "Prefabs/SpaceShip");
+            for (int i = 0; i < _numberOfStars; i++)
+            {
+                SpawnEntity("FallenStar", Entity.EntityType.FallenStar, false, "Prefabs/FallenStar"); 
+            }
+            SpawnEntity("TradingPost", Entity.EntityType.TradingPost, false, "Prefabs/TradingPost");
         }
 
-        private void SpawnEntity(string name, Entity.EntityType type, bool aiActive)
+        private void SpawnEntity(string name, Entity.EntityType type, bool aiActive, string path)
         {
-            var GO = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            var model = Resources.Load<GameObject>(path);
+            var GO = GameObject.Instantiate(model, transform.position, Quaternion.identity);
             GO.name = name;
             var entity = GO.AddComponent<Entity>();
             entity.transform.position = _grid.GetRandomWalkableNode();
