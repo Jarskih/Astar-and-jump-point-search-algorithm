@@ -35,7 +35,7 @@ namespace Astar
 
         public void NotifyComplete()
         {
-            _completeCallback.Invoke(_foundPath);
+            _completeCallback.Invoke(_foundPath, _openSet, _closedSet);
         }
         
         private List<Node> FindPathActual(Node start, Node target)
@@ -175,15 +175,11 @@ namespace Astar
             {
                 if (neighbor == null)
                 {
-                    //Debug.LogError("Neighbor was null");
                     continue;
                 }
-                
-                neighbor.distance = 1;
 
                 if (!neighbor.isWalkable)
                 {
-                   // Debug.LogError("Neighbor was not walkable");
                     continue;
                 }
 
@@ -200,10 +196,6 @@ namespace Astar
                     {
                         continue;
                     }
-                    
-                    // include distance, as parent may not be immediately adjacent:
-                    //var d = PathfindMaster.Octile(Mathf.Abs(jx - node.x), Mathf.Abs(jz - node.z));
-                    //var ng = node.gCost + d; // next `g` value
 
                     //we create a new movement cost for our neighbours
                     float ng = node.gCost + GetDistance(node, jumpNode);
@@ -218,7 +210,6 @@ namespace Astar
 
                         if (!_openSet.Contains(jumpNode)) {
                             _openSet.Add(jumpNode);
-                            //jumpNode.nodeRef.isJumpNode = true;
                         }
                     }
                 }

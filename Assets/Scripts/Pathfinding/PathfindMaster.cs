@@ -9,7 +9,7 @@ namespace Astar
         private Grid _grid;
         private int MaxJobs = 50;
 
-        public delegate void PathfindingJobComplete(List<Node> path);
+        public delegate void PathfindingJobComplete(List<Node> path, List<Node> openList, HashSet<Node> closedSet);
 
         private List<Pathfinder> _currentJobs;
         private List<Pathfinder> _todoJobs;

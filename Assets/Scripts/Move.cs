@@ -48,8 +48,12 @@ namespace Astar
         PathfindMaster.GetInstance().RequestPathfind(currentNode, targetNode, UpdatePath, jumpSearch);
     }
 
-    private void UpdatePath(List<Node> path)
+    private void UpdatePath(List<Node> path, List<Node> openList, HashSet<Node> closedSet)
     {
+        PathfindingSnapShot.Instance().Reset();
+        PathfindingSnapShot.Instance().TakeSnapshot(openList, closedSet);
+        PathfindingSnapShot.Instance().VisualizeNodes();
+        
         _path = path;
         _currentPathIndex = 0;
         if (_path.Count > 0)

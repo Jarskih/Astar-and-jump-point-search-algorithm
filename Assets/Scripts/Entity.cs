@@ -27,6 +27,7 @@ namespace Astar
         private Vector3 _targetPos;
         private Entity _target;
         private Vector3 _restPos;
+        public bool controlled;
         
         [SerializeField] private Entity _tradingPost;
         [SerializeField] private Entity _fallenStar;
@@ -47,8 +48,18 @@ namespace Astar
         
         public void Tick()
         {
-            _stateController.Tick();
-            //  _move.Tick();
+            if (!controlled)
+            {
+                _stateController.Tick();
+            }
+            else
+            {
+                _move.Tick();
+                if (_move.HasPath())
+                {
+                    MoveAlongPath();
+                }
+            }
         }
 
         public void Sense()

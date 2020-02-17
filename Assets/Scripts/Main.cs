@@ -27,7 +27,7 @@ namespace Astar
 
             _pathfindMaster.Init(_grid);
 
-            SpawnEntity("StarChaser", Entity.EntityType.StarChaser, true, "Prefabs/StarChaser");
+            SpawnEntity("StarChaser", Entity.EntityType.StarChaser, false, "Prefabs/StarChaser");
             SpawnEntity("SpaceShip", Entity.EntityType.SpaceShip, false, "Prefabs/SpaceShip");
             for (int i = 0; i < _numberOfStars; i++)
             {

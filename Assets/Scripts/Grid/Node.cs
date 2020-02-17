@@ -18,10 +18,10 @@ namespace Astar
         // Pathfinding
         public float gCost;
         public int hCost;
-        public int fCost;
+        public float fCost => gCost + hCost;
         public Node parentNode;
         public int distance;
-        [SerializeField] private bool _isWalkable;
+        private bool _isWalkable;
         public bool isWalkable => _isWalkable;
 
         public Node(int pX, int pY, int pZ, GameObject go, bool isWalkable)
@@ -92,24 +92,21 @@ namespace Astar
             e
         }
 
-        public bool HasEntity(Entity.EntityType entityType)
+        public void SetColor(Color color)
         {
-            return _entity.GetEntityType() == entityType;
+            _nodeObject.GetComponent<MeshRenderer>().material.color = color;
         }
 
-        public void AddEntity(Entity entity)
+        public void AddText()
         {
-            _entity = entity;
+            var textHolder = GameObject.FindObjectOfType<UIHandler>();
+            textHolder.AddText(_nodeObject, gCost, hCost, fCost);
         }
 
-        public void RemoveEntity()
+        public void ResetText()
         {
-            _entity = null;
-        }
-
-        public Entity GetEntity()
-        {
-            return _entity;
+            var textHolder = GameObject.FindObjectOfType<UIHandler>();
+            textHolder.Reset();
         }
     }
 }
