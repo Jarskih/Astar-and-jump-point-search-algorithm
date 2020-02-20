@@ -1,13 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Pathfinding;
 using UnityEngine;
 
 namespace Astar
 {
     public class Move : MonoBehaviour
 {
-    public List<Node> _path = new List<Node>();
+    public List<Vector3> _path = new List<Vector3>();
     private Grid _grid;
     private Camera _camera;
     private Node _currentNode;
@@ -27,17 +28,24 @@ namespace Astar
     }
 
     // Update is called once per frame
-    public void Tick()
+    public void Tick(bool jumpSearch)
     {
         if (Input.GetMouseButtonDown(0))
         {
+            PathfindMaster.GetInstance().PathfindingSnapShot.Reset();
+            _grid.ResetColors();
             Node node = FindNodeFromMousePosition(_grid);
             if (node == null)
             {
                 return;
             }
             _currentNode = _grid.GetNodeFromWorldPos(transform.position);
-            PathfindMaster.GetInstance().RequestPathfind(_currentNode, node, UpdatePath, false);
+            PathfindMaster.GetInstance().RequestPathfind(_currentNode, node, UpdatePath, jumpSearch);
+        }
+
+        if (Input.GetKeyDown(KeyCode.RightArrow))
+        {
+            PathfindMaster.GetInstance().PathfindingSnapShot.NextState();
         }
     }
     
@@ -48,12 +56,8 @@ namespace Astar
         PathfindMaster.GetInstance().RequestPathfind(currentNode, targetNode, UpdatePath, jumpSearch);
     }
 
-    private void UpdatePath(List<Node> path, List<Node> openList, HashSet<Node> closedSet)
+    private void UpdatePath(List<Vector3> path)
     {
-        PathfindingSnapShot.Instance().Reset();
-        PathfindingSnapShot.Instance().TakeSnapshot(openList, closedSet);
-        PathfindingSnapShot.Instance().VisualizeNodes();
-        
         _path = path;
         _currentPathIndex = 0;
         if (_path.Count > 0)
@@ -61,15 +65,14 @@ namespace Astar
             for (int i = 0; i < _path.Count; i++)
             {
                 _lineRenderer.positionCount = path.Count;
-                _lineRenderer.SetPosition(i, _path[i].GetNodeWorldPos());
-               // Debug.DrawLine(_path[i].GetNodeWorldPos(), _path[i + 1].GetNodeWorldPos(), Color.white, 2.5f);
+                _lineRenderer.SetPosition(i, _path[i]);
             }
         }
     }
 
     public void MoveAlongPath()
     {
-        var distance = Vector3.Distance(transform.position, _path[_currentPathIndex].GetNodeWorldPos());
+        var distance = Vector3.Distance(transform.position, _path[_currentPathIndex]);
         if(distance < 0.1f)
         {
             _currentPathIndex++;
@@ -81,7 +84,7 @@ namespace Astar
             return;
         }
 
-        transform.position = Vector3.MoveTowards(transform.position, _path[_currentPathIndex].GetNodeWorldPos(), 0.1f);
+        transform.position = Vector3.MoveTowards(transform.position, _path[_currentPathIndex], 0.1f);
     }
 
     private void StopMoving()

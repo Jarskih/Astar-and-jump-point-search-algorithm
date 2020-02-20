@@ -1,29 +1,35 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using Node = Astar.Node;
 
-namespace Astar
+namespace Pathfinding
 {
     public class Pathfinder
     {
-        private readonly Grid _grid;
-        private readonly Node _startPosition;
-        private readonly Node _endPosition;
+        private PathfindingGrid _grid;
+        private readonly PathfindingNode _startPosition;
+        private readonly PathfindingNode _endPosition;
         private float _targetDistance;
         public volatile bool JobDone = false;
         private readonly bool _useJump; // Use optimized jump point algorithm
         private readonly PathfindMaster.PathfindingJobComplete _completeCallback;
-        private List<Node> _foundPath = new List<Node>();
+        private List<Vector3> _foundPath = new List<Vector3>();
         //We need two lists, one for the nodes we need to check and one for the nodes we've already checked
-        private List<Node> _openSet = new List<Node>();
-        private HashSet<Node> _closedSet = new HashSet<Node>();
-        
-        public Pathfinder(Grid grid, Node start, Node target, PathfindMaster.PathfindingJobComplete callback, bool pUseJump = false)
+        private List<PathfindingNode> _openSet = new List<PathfindingNode>();
+        private HashSet<PathfindingNode> _closedSet = new HashSet<PathfindingNode>();
+        private Stack<PathfindingNode> jumpStack = new Stack<PathfindingNode>();
+        private List<PathfindingNode> _retList = new List<PathfindingNode>();
+
+        private PathfindingSnapShot _pathfindingSnapShot;
+
+        public Pathfinder(PathfindingGrid grid, PathfindingSnapShot pathfindingSnapShot, Node start, Node target, PathfindMaster.PathfindingJobComplete callback, bool pUseJump = false)
         {
-            _startPosition = start;
-            _endPosition = target;
-            _completeCallback = callback;
             _grid = grid;
+            _startPosition = new PathfindingNode(start.x,start.y,start.z,start.isWalkable);
+            _endPosition = new PathfindingNode(target.x,target.y,target.z,target.isWalkable);
+            _completeCallback = callback;
             _useJump = pUseJump;
+            _pathfindingSnapShot = pathfindingSnapShot;
         }
 
         public void FindPath()
@@ -35,10 +41,10 @@ namespace Astar
 
         public void NotifyComplete()
         {
-            _completeCallback.Invoke(_foundPath, _openSet, _closedSet);
+            _completeCallback.Invoke(_foundPath);
         }
         
-        private List<Node> FindPathActual(Node start, Node target)
+        private List<Vector3> FindPathActual(PathfindingNode start, PathfindingNode target)
         {
             _foundPath.Clear();
             _openSet.Clear();
@@ -53,14 +59,13 @@ namespace Astar
 
             while (_openSet.Count > 0)
             {
-                Node currentNode = _openSet[0];
-
+                PathfindingNode currentNode = _openSet[0];
+    
               //  if (!_useJump)
               //   {
-                    foreach (Node t in _openSet)
+                    foreach (PathfindingNode t in _openSet)
                     {
                         //We check the costs for the current node
-                        //You can have more opt. here but that's not important now
                         if (t.fCost < currentNode.fCost ||
                             ((int) t.fCost == (int) currentNode.fCost &&
                              t.hCost < currentNode.hCost))
@@ -79,7 +84,7 @@ namespace Astar
                 _closedSet.Add(currentNode);
 
                 //if the current node is the target node
-                if (currentNode == target)
+                if (currentNode.x == target.x && currentNode.y == target.y && currentNode.z == target.z)
                 {
                     //that means we reached our destination, so we are ready to retrace our path
                     _foundPath = RetracePath(start, currentNode);
@@ -99,7 +104,7 @@ namespace Astar
                 else
                 {
                     //if we haven't reached our target, then we need to start looking the neighbours
-                    foreach (Node neighbour in GetAllNeighbors(currentNode, DiagonalMovement.IfAtMostOneObstacle))//turn off the 3d from here
+                    foreach (PathfindingNode neighbour in GetAllNeighbors(currentNode, DiagonalMovement.IfAtMostOneObstacle))
                     {
                         if (!_closedSet.Contains(neighbour))
                         {
@@ -129,15 +134,15 @@ namespace Astar
             return _foundPath;
         }
 
-        private List<Node> RetracePath(Node startNode, Node endNode)
+        private List<Vector3> RetracePath(PathfindingNode startNode, PathfindingNode endNode)
         {
             //Retrace the path, is basically going from the endNode to the startNode
-            List<Node> path = new List<Node>();
-            Node currentNode = endNode;
+            List<Vector3> path = new List<Vector3>();
+            PathfindingNode currentNode = endNode;
 
             while (currentNode != startNode)
             {
-                path.Add(currentNode);
+                path.Add(new Vector3(currentNode.x,currentNode.y, currentNode.z));
                 //by taking the parentNodes we assigned
                 currentNode = currentNode.parentNode;
             }
@@ -145,19 +150,6 @@ namespace Astar
             //then we simply reverse the list
             path.Reverse();
 
-            // If not using jump search assign distances to nodes
-            // Jump() is assigning distances when using jump search
-            if (!_useJump)
-            {
-                // Add distances
-                int distance = 1;
-                foreach (var node in path)
-                {
-                    node.distance = distance;
-                    distance++;
-                }
-            }
-            
             return path;
         }
         /**
@@ -165,11 +157,9 @@ namespace Astar
         * direction of each available neighbor, adding any points found to the open
         * list.
         */
-
-        private Stack<Node> jumpStack = new Stack<Node>();
-        private void IdentifySuccessors(Node node)
+        private void IdentifySuccessors(PathfindingNode node)
         {
-            List<Node> jumpNeighbours = GetJumpNeighbours(node);
+            List<PathfindingNode> jumpNeighbours = GetJumpNeighbours(node);
 
             foreach(var neighbor in jumpNeighbours)
             {
@@ -182,16 +172,13 @@ namespace Astar
                 {
                     continue;
                 }
-
+                
                 neighbor.distance = 1;
 
                 var jumpNode = Jump(neighbor.x, neighbor.z, node.x, node.z);
                 
                 if (jumpNode != null)
                 {
-                    var jx = jumpNode.x;
-                    var jz = jumpNode.z;
-
                     if (_closedSet.Contains(jumpNode))
                     {
                         continue;
@@ -205,7 +192,6 @@ namespace Astar
                     {
                         jumpNode.gCost = ng;
                         jumpNode.hCost = GetDistance(jumpNode, _endPosition);
-                        //jumpNode.hCost = PathfindMaster.Manhattan(Mathf.Abs(jx - _endPosition.x), Mathf.Abs(jz - _endPosition.z));
                         jumpNode.parentNode = node;
 
                         if (!_openSet.Contains(jumpNode)) {
@@ -222,9 +208,9 @@ namespace Astar
          * return all available neighbors.
          * @return List<Node> The neighbors found.
          */
-        private List<Node> _retList = new List<Node>();
 
-        private List<Node> GetJumpNeighbours(Node node)
+
+        private List<PathfindingNode> GetJumpNeighbours(PathfindingNode node)
         {
             _retList.Clear();
             var parent = node.parentNode;
@@ -244,15 +230,18 @@ namespace Astar
                 // search diagonally
                 if (dx != 0 && dz != 0)
                 {
+                    // ↑ or ↓
                     if (IsWalkable(x, y, z + dz))
                     {
                         _retList.Add(GetNode(x, y, z + dz));
                     }
+                    // ← or →
                     if (IsWalkable(x + dx, y, z))
                     {
                         _retList.Add(GetNode(x + dx, y, z));
                     }
-                    if (IsWalkable(dx, y, z + dz) || IsWalkable(x + dz, y, z))
+                    // Path is not blocked by obstacles. Move forward diagonally
+                    if (IsWalkable(x, y, z + dz) || IsWalkable(x + dx, y, z))
                     {
                         var jumpNode = GetNode(x + dx, y, z + dz);
                         if (jumpNode != null)
@@ -260,6 +249,7 @@ namespace Astar
                             _retList.Add(jumpNode);
                         }
                     }
+                    
                     if (!IsWalkable(x - dx, y, z) && IsWalkable(x, y, z + dz))
                     {
                         var jumpNode = GetNode(x - dx, y, z + dz);
@@ -268,7 +258,8 @@ namespace Astar
                             _retList.Add(jumpNode);
                         }
                     }
-                    if (!IsWalkable(x, y, z - dz) && IsWalkable(x + dz, y, z))
+                    
+                    if (!IsWalkable(x, y, z - dz) && IsWalkable(x + dx, y, z))
                     {
                         var jumpNode = GetNode(x + dx, y, z - dz);
                         if (jumpNode != null)
@@ -299,11 +290,14 @@ namespace Astar
                     }
                     else
                     {
-                        if (IsWalkable(x + dx, y, z)) {
+                        if (IsWalkable(x + dx, y, z)) 
+                        {
                             _retList.Add(GetNode(x + dx, y, z));
+                            
                             if (!IsWalkable(x, y, z + 1)) {
                                 _retList.Add(GetNode(x + dx, y, z + 1));
                             }
+                            
                             if (!IsWalkable(x, y, z - 1)) {
                                 _retList.Add(GetNode(x + dx, y, z - 1));
                             }
@@ -314,7 +308,6 @@ namespace Astar
             // return all neighbors without pruning
             else
             {
-                //retList = GetNeighbours(node, false);
                 _retList = GetAllNeighbors(node, DiagonalMovement.IfAtMostOneObstacle);
             }
             return _retList;
@@ -338,9 +331,9 @@ namespace Astar
          * https://zerowidth.com/2013/a-visual-explanation-of-jump-point-search.html
          */
 
-        private Node Jump(int pX, int pZ, int pPx, int pPz)
+        private PathfindingNode Jump(int pX, int pZ, int pPx, int pPz)
         {
-            Node next = GetNode(pX, 0, pZ);
+            PathfindingNode next = GetNode(pX, 0, pZ);
             int dx = pX - pPx;
             int dz = pZ - pPz;
             int px = pPx;
@@ -360,19 +353,15 @@ namespace Astar
             {
                 next = jumpStack.Pop();
 
+               _pathfindingSnapShot.TakeSnapshot(next, _openSet, _closedSet);
+                
                 next.distance = GetNode(px, 0, pz).distance + 1;
-                // if (next.distance <= 12)
-                //{
-                // _worldUiManager.movementNodes.Add(next);
-                //}
-
-                //next.nodeRef.visited = true;
-
+                
                 if (next == _endPosition)
                 {
                     return next;
                 }
-
+                
                 // check for forced neighbors
                 // along the diagonal
                 if (dx != 0 && dz != 0)
@@ -444,7 +433,7 @@ namespace Astar
                             return next;
                         }
                     }
-                    else
+                    else // moving along y
                     {
                         // if dx = 0 & dz = 1
                         // moving ↑
@@ -472,7 +461,7 @@ namespace Astar
                         }
                     }
                 }
-
+                
                 // moving diagonally, must make sure one of the vertical/horizontal
                 // neighbors is open to allow the path
                 // if dx = 1 & dz = 1
@@ -486,8 +475,6 @@ namespace Astar
                 if ((n1 != null && n1.isWalkable) || (n2 != null && n2.isWalkable))
                 {
                     //return Jump(x + dx, z + dz, x, z);
-                    dx = x - px;
-                    dz = z - pz;
                     px = next.x;
                     pz = next.z;
                     x += dx;
@@ -502,9 +489,9 @@ namespace Astar
             return null;
         }
 
-        private Node JumpAlwaysDiagonal(int x, int z, int px, int pz)
+        private PathfindingNode JumpAlwaysDiagonal(int x, int z, int px, int pz)
         {
-            Node next = GetNode(x, 0, z);
+            PathfindingNode next = GetNode(x, 0, z);
             int dx = x - px;
             int dz = z - pz;
 
@@ -513,8 +500,6 @@ namespace Astar
                 return null;
             }
 
-            //next.nodeRef.visited = true;
-            
             if (next == _endPosition)
             {
                 return next;
@@ -645,9 +630,9 @@ namespace Astar
         * @param {Node} node
         * @param {DiagonalMovement} diagonalMovement
         */
-        private List<Node> GetAllNeighbors(Node node, DiagonalMovement diagonalMovement)
+        private List<PathfindingNode> GetAllNeighbors(PathfindingNode node, DiagonalMovement diagonalMovement)
         {
-            List<Node> neighbors = new List<Node>();
+            List<PathfindingNode> neighbors = new List<PathfindingNode>();
             
             int x = node.x,
                 z = node.z,
@@ -729,10 +714,10 @@ namespace Astar
             return neighbors;
         }
         
-        private List<Node> GetNeighbours(Node node, bool getVerticalneighbors = false)
+        private List<PathfindingNode> GetNeighbours(PathfindingNode node, bool getVerticalneighbors = false)
         {
             //This is were we start taking our neighbours
-            List<Node> neighbors = new List<Node>();
+            List<PathfindingNode> neighbors = new List<PathfindingNode>();
 
             for (int x = -1; x <= 1; x++)
             {
@@ -758,7 +743,7 @@ namespace Astar
 
                             //the nodes we want are what's forward/backwards, left/right, up/down from us
 
-                            Node newNode = GetNeighbourNode(searchPos, false, node);
+                            PathfindingNode newNode = GetNeighbourNode(searchPos, false, node);
                             
                             if (newNode != null && newNode.isWalkable)
                             {
@@ -774,16 +759,16 @@ namespace Astar
             return neighbors;
         }
 
-        private Node GetNeighbourNode(Vector3Int adjPos, bool searchTopDown, Node currentNodePos)
+        private PathfindingNode GetNeighbourNode(Vector3Int adjPos, bool searchTopDown, PathfindingNode currentNodePos)
         {
-            Node retVal = null;
-            Node node = GetNode(adjPos.x, adjPos.y, adjPos.z);
+            PathfindingNode retVal = null;
+            PathfindingNode node = GetNode(adjPos.x, adjPos.y, adjPos.z);
 
             int originalX = adjPos.x - currentNodePos.x;
             int originalZ = adjPos.z - currentNodePos.z;
 
-            Node.Direction dirX = FindDirection(originalX, 0);
-            Node.Direction dirZ = FindDirection(0, originalZ);
+            PathfindingNode.Direction dirX = FindDirection(originalX, 0);
+            PathfindingNode.Direction dirZ = FindDirection(0, originalZ);
 
 
             if (node != null && node.isWalkable)
@@ -793,8 +778,8 @@ namespace Astar
 
             if (Mathf.Abs(originalX) == 1 && Mathf.Abs(originalZ) == 1)
             {
-                Node neighbour1 = GetNode(currentNodePos.x + originalX, currentNodePos.y, currentNodePos.z);
-                Node neighbour2 = GetNode(currentNodePos.x, currentNodePos.y, currentNodePos.z + originalZ);
+                PathfindingNode neighbour1 = GetNode(currentNodePos.x + originalX, currentNodePos.y, currentNodePos.z);
+                PathfindingNode neighbour2 = GetNode(currentNodePos.x, currentNodePos.y, currentNodePos.z + originalZ);
 
                 if (!ValidNode(currentNodePos, neighbour1) || !ValidNode(currentNodePos, neighbour2))
                 {
@@ -809,7 +794,7 @@ namespace Astar
 
             if (originalX != 0)
             {
-                if (node != null && node.ReturnDirection(dirX).status == Node.DirectionStatus.blocked)
+                if (node != null && node.ReturnDirection(dirX).status == PathfindingNode.DirectionStatus.blocked)
                 {
                     retVal = null;
                 }
@@ -817,7 +802,7 @@ namespace Astar
 
             if (originalZ != 0)
             {
-                if (node != null && node.ReturnDirection(dirZ).status == Node.DirectionStatus.blocked)
+                if (node != null && node.ReturnDirection(dirZ).status == PathfindingNode.DirectionStatus.blocked)
                 {
                     retVal = null;
                 }
@@ -825,19 +810,13 @@ namespace Astar
 
             return retVal;
             }
-
-        private Node GetNode(int x, int y, int z)
+        
+        private PathfindingNode GetNode(int x, int y, int z)
         {
-            Node n = null;
-
-            lock (_grid)
-            {
-                n = _grid.GetNode(x, y, z);
-            }
-            return n;
+            return _grid.GetNode(x,y,z);
         }
-
-        private int GetDistance(Node posA, Node posB)
+        
+        private int GetDistance(PathfindingNode posA, PathfindingNode posB)
         {
             //We find the distance between each node
 
@@ -853,34 +832,34 @@ namespace Astar
             return 14 * distX + 10 * (distZ - distX) + 10 * distY;
         }
 
-        private Node.Direction FindDirection(int x, int z)
+        private PathfindingNode.Direction FindDirection(int x, int z)
         {
-            Node.Direction retVal = Node.Direction.e;
+            PathfindingNode.Direction retVal = PathfindingNode.Direction.e;
 
             if (x != 0)
             {
-                retVal = (x < 0) ? Node.Direction.e : Node.Direction.w;
+                retVal = (x < 0) ? PathfindingNode.Direction.e : PathfindingNode.Direction.w;
             }
 
             if (z != 0)
             {
-                retVal = (z < 0) ? Node.Direction.n : Node.Direction.s;
+                retVal = (z < 0) ? PathfindingNode.Direction.n : PathfindingNode.Direction.s;
             }
 
             return retVal;
         }
 
-        private int DirectionX(Node from, Node to)
+        private int DirectionX(PathfindingNode from, PathfindingNode to)
         {
             return to.x - from.x;
         }
 
-        private int DirectionZ(Node from, Node to)
+        private int DirectionZ(PathfindingNode from, PathfindingNode to)
         {
             return to.z - from.z;
         }
 
-        private bool ValidNode(Node currentNodePos, Node neighbour)
+        private bool ValidNode(PathfindingNode currentNodePos, PathfindingNode neighbour)
         {
             bool retVal = true;
 
@@ -889,22 +868,21 @@ namespace Astar
                 return false;
             }
             
-            // If node is not air node (used for climbing)
             if (neighbour.isWalkable == false)
             {
                 return false;
             }
 
-            Node.Direction x = FindDirection(DirectionX(currentNodePos, neighbour), 0);
+            PathfindingNode.Direction x = FindDirection(DirectionX(currentNodePos, neighbour), 0);
 
-            Node.Direction z = FindDirection(0, DirectionZ(currentNodePos, neighbour));
+            PathfindingNode.Direction z = FindDirection(0, DirectionZ(currentNodePos, neighbour));
 
-            if (neighbour.ReturnDirection(x).status == Node.DirectionStatus.blocked)
+            if (neighbour.ReturnDirection(x).status == PathfindingNode.DirectionStatus.blocked)
             {
                 retVal = false;
             }
 
-            if (neighbour.ReturnDirection(z).status == Node.DirectionStatus.blocked)
+            if (neighbour.ReturnDirection(z).status == PathfindingNode.DirectionStatus.blocked)
             {
                 retVal = false;
             }

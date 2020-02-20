@@ -1,31 +1,39 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
+using Pathfinding;
 using UnityEngine;
 
-namespace Astar
+namespace Pathfinding
 {
     public class PathfindMaster : MonoBehaviour
     {
-        private Grid _grid;
+        private Astar.Grid _grid;
         private int MaxJobs = 50;
 
-        public delegate void PathfindingJobComplete(List<Node> path, List<Node> openList, HashSet<Node> closedSet);
+        public delegate void PathfindingJobComplete(List<Vector3> path);
 
         private List<Pathfinder> _currentJobs;
         private List<Pathfinder> _todoJobs;
         private static PathfindMaster _instance;
+
+        private PathfindingSnapShot _pathfindingSnapShot;
+        public PathfindingSnapShot PathfindingSnapShot => _pathfindingSnapShot;
 
         public static PathfindMaster GetInstance()
         {
             return _instance;
         }
 
-        public void Init(Grid grid)
+        public void Init(Astar.Grid grid)
         {
             _instance = this;
             _currentJobs = new List<Pathfinder>();
             _todoJobs = new List<Pathfinder>();
             _grid = grid;
+
+            _pathfindingSnapShot = new PathfindingSnapShot();
+            _pathfindingSnapShot.Init(grid);
         }
 
         /**
@@ -90,9 +98,9 @@ namespace Astar
             }
         }
 
-        public void RequestPathfind(Node start, Node target, PathfindingJobComplete completeCallback, bool useJumpSearch = true)
+        public void RequestPathfind(Astar.Node start, Astar.Node target, PathfindingJobComplete completeCallback, bool useJumpSearch = true)
         {
-            Pathfinder newJob = new Pathfinder(_grid, start, target, completeCallback, useJumpSearch);
+            Pathfinder newJob = new Pathfinder(new PathfindingGrid(_grid), _pathfindingSnapShot, start, target, completeCallback, useJumpSearch);
             _todoJobs.Add(newJob);
         }
     }

@@ -1,62 +1,98 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
-using TMPro;
+using Astar;
 using UnityEngine;
 
-namespace Astar
+namespace Pathfinding
 {
-    public class PathfindingSnapShot : MonoBehaviour
+    struct Snapshot
     {
-        private static PathfindingSnapShot instance;
+        public PathfindingNode currentNode;
+        public List<PathfindingNode> openList;
+        public HashSet<PathfindingNode> closedList;
 
-        private List<Node> openList = new List<Node>();
-        private HashSet<Node> closedList = new HashSet<Node>();
-
-        void Start()
+        public Snapshot(PathfindingNode currentNode, List<PathfindingNode> openList, HashSet<PathfindingNode> closedList)
         {
-            instance = this;
+            this.currentNode = currentNode;
+            this.openList = new List<PathfindingNode>(openList);
+            this.closedList = new HashSet<PathfindingNode>(closedList);
+        }
+    }
+    
+    public class PathfindingSnapShot
+    {
+        
+        private Astar.Grid _grid;
+        private List<Snapshot> snapshots = new List<Snapshot>();
+        private int index;
+        public void Init(Astar.Grid grid)
+        {
+            _grid = grid;
         }
 
-        public static PathfindingSnapShot Instance()
+        public void TakeSnapshot(PathfindingNode currentNode, List<PathfindingNode> openList, HashSet<PathfindingNode> closedList)
         {
-            return instance;
+            snapshots.Add(new Snapshot(currentNode, openList, closedList));
         }
 
-        public void TakeSnapshot(List<Node> openList, HashSet<Node> closedList)
+        private void VisualizeNodes()
         {
-            this.openList = openList;
-            this.closedList = closedList;
-        }
-
-        public void VisualizeNodes()
-        {
-            foreach (var node in this.openList)
+            if (index < snapshots.Count)
             {
-                node.SetColor(Color.blue);
-                node.AddText();
-            }
+                foreach (var node in snapshots[index].openList)
+                {
+                    var n = _grid.GetNode(node.x, node.y, node.z);
+                    n.SetColor(Color.blue);
+                    n.AddText();
+                }
 
-            foreach (var node in closedList)
-            {
-                node.SetColor(Color.red);
-                node.AddText();
+                foreach (var node in snapshots[index].closedList)
+                {
+                    var n = _grid.GetNode(node.x, node.y, node.z);
+                    n.SetColor(Color.red);
+                    n.AddText();
+                }
+
+                var currentNode = snapshots[index].currentNode;
+                var gridnode = _grid.GetNode(currentNode.x, currentNode.y, currentNode.z);
+                gridnode.SetColor(Color.green); 
             }
         }
 
         public void Reset()
         {
-            foreach (var node in this.openList)
+            if (snapshots.Count > 0 && index < snapshots.Count)
             {
-                node.SetColor(Color.white);
-                node.ResetText();
-            }
+                foreach (var node in snapshots[index].openList)
+                {
+                    var n = _grid.GetNode(node.x, node.y, node.z);
+                    n.SetColor(Color.white);
+                    n.ResetText();
+                }
 
-            foreach (var node in closedList)
-            {
-                node.SetColor(Color.white);
-                node.ResetText();
+                foreach (var node in snapshots[index].closedList)
+                {
+                    var n = _grid.GetNode(node.x, node.y, node.z);
+                    n.SetColor(Color.white);
+                    n.ResetText();
+                }
+            
+                var currentNode = snapshots[index].currentNode;
+                var gridnode = _grid.GetNode(currentNode.x, currentNode.y, currentNode.z);
+                gridnode.SetColor(Color.white);
+                index++;
             }
+            else
+            {
+                index = 0;
+                snapshots.Clear();
+            }
+        }
+
+        public void NextState()
+        {
+            Reset();
+            VisualizeNodes();
         }
     }
 }

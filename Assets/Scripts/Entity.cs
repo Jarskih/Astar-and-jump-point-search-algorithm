@@ -32,6 +32,7 @@ namespace Astar
         [SerializeField] private Entity _tradingPost;
         [SerializeField] private Entity _fallenStar;
         [SerializeField] private Entity _spaceShip;
+        [SerializeField] private bool _useJumpSearch;
 
         public void Init(Grid grid, EntityType entityType, bool AIActive)
         {
@@ -54,7 +55,7 @@ namespace Astar
             }
             else
             {
-                _move.Tick();
+                _move.Tick(_useJumpSearch);
                 if (_move.HasPath())
                 {
                     MoveAlongPath();
@@ -93,7 +94,7 @@ namespace Astar
 
             if (_target != null)
             {
-                _move.GetPath(_target, false);
+                _move.GetPath(_target, _useJumpSearch);
             }
         }
 

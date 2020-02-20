@@ -7,7 +7,7 @@ namespace Astar
         [SerializeField] private State currentState;
         private State remainState;
 
-        private bool aiActive = true;
+        [SerializeField] private bool aiActive = true;
         private float stateTimeElapsed = 0;
 
         private Entity _entity;

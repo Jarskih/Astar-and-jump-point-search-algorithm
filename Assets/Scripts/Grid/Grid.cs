@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.PlayerLoop;
@@ -171,17 +172,17 @@ namespace Astar
 
         public Node GetNode(int x, int y, int z)
         {
-            if (x > _gridSizeX || x < 0)
+            if (x >= _gridSizeX || x < 0)
             {
                 return null;
             }
 
-            if (y > _gridSizeY || y < 0)
+            if (y >= _gridSizeY || y < 0)
             {
                 return null;
             }
 
-            if (z > _gridSizeZ || z < 0)
+            if (z >= _gridSizeZ || z < 0)
             {
                 return null;
             }
@@ -352,6 +353,19 @@ namespace Astar
 
             Debug.LogError("Could not find walkable node");
             return Vector3.zero;
+        }
+
+        public void ResetColors()
+        {
+            foreach (var n in _nodes)
+            {
+                n.SetColor(Color.white);
+            }
+        }
+
+        public IEnumerable AllNodes()
+        {
+            return _nodes;
         }
     }
 }
