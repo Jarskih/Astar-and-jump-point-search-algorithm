@@ -5,6 +5,7 @@
       <e p="AI-programming-assigment-2.sln" t="IncludeFlat" />
       <e p="Assembly-CSharp.csproj" t="IncludeRecursive" />
       <e p="Assets" t="Include">
+        <e p="EditGrid.cs" t="Include" />
         <e p="Scripts" t="Include">
           <e p="Collect.cs" t="Include" />
           <e p="Drop.cs" t="Include" />
@@ -41,6 +42,7 @@
           <e p="Main.cs" t="Include" />
           <e p="Materials.cs" t="Include" />
           <e p="Move.cs" t="Include" />
+          <e p="NodeHelpers.cs" t="Include" />
           <e p="Pathfinding" t="Include">
             <e p="Pathfinder.cs" t="Include" />
             <e p="PathfindingGrid.cs" t="Include" />

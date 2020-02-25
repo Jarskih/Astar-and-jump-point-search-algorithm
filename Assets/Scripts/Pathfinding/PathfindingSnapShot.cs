@@ -43,14 +43,14 @@ namespace Pathfinding
                 {
                     var n = _grid.GetNode(node.x, node.y, node.z);
                     n.SetColor(Color.blue);
-                    n.AddText();
+                    n.AddText(node.gCost, node.hCost, node.fCost);
                 }
 
                 foreach (var node in snapshots[index].closedList)
                 {
                     var n = _grid.GetNode(node.x, node.y, node.z);
                     n.SetColor(Color.red);
-                    n.AddText();
+                    n.AddText(node.gCost, node.hCost, node.fCost);
                 }
 
                 var currentNode = snapshots[index].currentNode;

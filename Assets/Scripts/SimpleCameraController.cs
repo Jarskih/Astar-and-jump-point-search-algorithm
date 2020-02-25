@@ -118,20 +118,20 @@ namespace FlatEarth
             }
 
             // Hide and lock cursor when right mouse button pressed
-            if (Input.GetMouseButtonDown(1))
+            if (Input.GetMouseButtonDown(2))
             {
                 Cursor.lockState = CursorLockMode.Locked;
             }
 
             // Unlock and show cursor when right mouse button released
-            if (Input.GetMouseButtonUp(1))
+            if (Input.GetMouseButtonUp(2))
             {
                 Cursor.visible = true;
                 Cursor.lockState = CursorLockMode.None;
             }
 
             // Rotation
-            if (Input.GetMouseButton(1))
+            if (Input.GetMouseButton(2))
             {
                 var mouseMovement = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y") * (invertY ? 1 : -1));
                 

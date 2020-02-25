@@ -14,7 +14,7 @@ namespace Astar
     private Node _currentNode;
     private int _currentPathIndex;
     private LineRenderer _lineRenderer;
-    public void Init(Grid grid)
+    public void Init(Grid grid, bool AIactive)
     {
         _grid = grid;
         _camera = Camera.main;
@@ -25,6 +25,10 @@ namespace Astar
         _lineRenderer.startColor = Color.white;
         _lineRenderer.endColor = Color.white;
         _lineRenderer.material = Resources.Load<Material>("Materials/Line");
+        if (!AIactive)
+        {
+            _lineRenderer.enabled = false;
+        }
     }
 
     // Update is called once per frame

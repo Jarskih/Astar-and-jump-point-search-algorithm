@@ -53,8 +53,8 @@ namespace Astar
                 {
                     for (int z = 0; z < _gridSizeZ; z++)
                     {
-                        var random = Random.Range(0, 11);
-                        bool isWalkable = random < 9;
+                        var random = Random.Range(0, 100);
+                        bool isWalkable = random < 90;
                         var quad = InitGridObject(x, y, z, quadContainer.transform, isWalkable);
                         Node n = new Node(x, y, z, quad, isWalkable);
                         _nodes[x, y, z] = n;
@@ -79,55 +79,9 @@ namespace Astar
             
             return IsValidPos(x,0,z) ? _nodes[x, 0, z] : null;
         }
-
-        public Vector3 GetRandomNodePos()
-        {
-            int x = Random.Range(0, _gridSizeX);
-            int y = Random.Range(0, _gridSizeY);
-            int z = Random.Range(0, _gridSizeZ);
-            return GetWorldPosFromNode(new Vector3(x,y,z));
-        }
-
-        public List<Node> GetNeighboringNodes(Node currentNode)
-        {
-            List<Node> neighbors = new List<Node>();
-            int y = currentNode.GetNodeGridPos().y;
-            for (int x = currentNode.GetNodeGridPos().x - 1; x <= currentNode.GetNodeGridPos().x + 1; x++)
-            {
-                for (int z = currentNode.GetNodeGridPos().z - 1; z <= currentNode.GetNodeGridPos().z + 1; z++)
-                {
-                    if (x == currentNode.GetNodeGridPos().x && z == currentNode.GetNodeGridPos().z)
-                    {
-                        continue;
-                    }
-
-                    if (IsValidPos(x, y, z))
-                    {
-                        neighbors.Add(_nodes[x, y, z]);
-                    }
-                }
-            }
-            return neighbors;
-        }
-
         private Vector3 GetWorldPosFromNode(Vector3 pos)
         {
             return new Vector3(pos.x*_nodeSizeX, pos.y*_nodeSizeY, pos.z*_nodeSizeZ);
-        }
-        
-        public bool IsOutsideGrid(Vector3 pos)
-        {
-            if (pos.x < 0 || pos.y < 0 || pos.z < 0)
-            {
-                return true;
-            }
-
-            if (pos.x > _gridSizeX * _nodeSizeX - 1 || pos.y > _gridSizeY * _nodeSizeY-1 || pos.z > _gridSizeZ * _nodeSizeZ-1)
-            {
-                return true;
-            }
-
-            return false;
         }
 
         private GameObject InitGridObject(int pX, int pY, int pZ, Transform parent, bool isWalkable)
@@ -164,7 +118,6 @@ namespace Astar
             }
             return true;
         }
-        
         private bool IsValidPos(Vector3 pos)
         {
             return IsValidPos((int)pos.x, (int)pos.y, (int)pos.z);
@@ -189,150 +142,48 @@ namespace Astar
 
             return _nodes[x, y, z];
         }
-
-        public Node GetNode(Vector3 pos)
-        {
-            return GetNode((int)pos.x, (int)pos.y, (int)pos.z);
-        }
         
-        private bool IsWalkable(int x, int y, int z)
+        public Node NodeFromWorldPosition(Vector3 worldPosition)
         {
-            var node = GetNode(x, y, z);
-            if (node != null)
+            float worldX = worldPosition.x;
+            float worldY = worldPosition.y;
+            float worldZ = worldPosition.z;
+
+            int x = Mathf.RoundToInt(worldX);
+            int y = Mathf.RoundToInt(worldY);
+            int z = Mathf.RoundToInt(worldZ);
+
+            if (x > sizeX - 1)
             {
-                return node.isWalkable;
+                x = sizeX - 1;
             }
 
-            return false;
-        }
-        
-        public enum DiagonalMovement
-        {
-            Always,
-            Never,
-            IfAtMostOneObstacle,
-            OnlyWhenNoObstacles,
-        };
-
-        /**
-        * Get the neighbors of the given node.
-        *
-        *     offsets      diagonalOffsets:
-        *  +---+---+---+    +---+---+---+
-        *  |   | 0 |   |    | 0 |   | 1 |
-        *  +---+---+---+    +---+---+---+
-        *  | 3 |   | 1 |    |   |   |   |
-        *  +---+---+---+    +---+---+---+
-        *  |   | 2 |   |    | 3 |   | 2 |
-        *  +---+---+---+    +---+---+---+
-        *
-        *  When allowDiagonal is true, if offsets[i] is valid, then
-        *  diagonalOffsets[i] and
-        *  diagonalOffsets[(i + 1) % 4] is valid.
-        * @param {Node} node
-        * @param {DiagonalMovement} diagonalMovement
-        */
-        public List<Node> GetAllNeighbors(Node node, DiagonalMovement diagonalMovement)
-        {
-            List<Node> neighbors = new List<Node>();
-
-            int x = node.x,
-                z = node.z,
-                y = node.y;
-
-            bool s0 = false,
-                d0 = false,
-                s1 = false,
-                d1 = false,
-                s2 = false,
-                d2 = false,
-                s3 = false,
-                d3 = false;
-
-            // ↑
-            if (IsWalkable(x, y, z + 1))
+            if (y > sizeY - 1)
             {
-                neighbors.Add(GetNode(x, y, z + 1));
-                s0 = true;
+                y = sizeY - 1;
             }
 
-            // →
-            if (IsWalkable(x + 1, y, z))
+            if (z > sizeZ - 1)
             {
-                neighbors.Add(GetNode(x + 1, y, z));
-                s1 = true;
+                z = sizeZ - 1;
             }
 
-            // ↓
-            if (IsWalkable(x, y, z - 1))
+            if (x < 0)
             {
-                neighbors.Add(GetNode(x, y, z - 1));
-                s2 = true;
+                x = 0;
             }
 
-            // ←
-            if (IsWalkable(x - 1, y, z))
+            if (y < 0)
             {
-                neighbors.Add(GetNode(x - 1, y, z));
-                s3 = true;
+                y = 0;
             }
 
-            if (diagonalMovement == DiagonalMovement.Never)
+            if (z < 0)
             {
-                return neighbors;
+                z = 0;
             }
 
-            if (diagonalMovement == DiagonalMovement.OnlyWhenNoObstacles)
-            {
-                d0 = s3 && s0;
-                d1 = s0 && s1;
-                d2 = s1 && s2;
-                d3 = s2 && s3;
-            }
-            else if (diagonalMovement == DiagonalMovement.IfAtMostOneObstacle)
-            {
-                d0 = s3 || s0;
-                d1 = s0 || s1;
-                d2 = s1 || s2;
-                d3 = s2 || s3;
-            }
-            else if (diagonalMovement == DiagonalMovement.Always)
-            {
-                d0 = true;
-                d1 = true;
-                d2 = true;
-                d3 = true;
-            }
-            else
-            {
-                Debug.LogError("Incorrect value of diagonalMovement");
-            }
-
-            // ↖
-            if (d0 && IsWalkable(x - 1, y, z + 1))
-            {
-                neighbors.Add(GetNode(x - 1, y, z + 1));
-            }
-
-            // ↗
-            if (d1 && IsWalkable(x + 1, y, z + 1))
-            {
-                neighbors.Add(GetNode(x + 1, y, z + 1));
-            }
-
-            // ↘
-            if (d2 && IsWalkable(x + 1, y, z - 1))
-            {
-                neighbors.Add(GetNode(x + 1, y, z - 1));
-            }
-
-            // ↙
-            if (d3 && IsWalkable(x - 1, y, z - 1))
-            {
-                neighbors.Add(GetNode(x - 1, y, z - 1));
-            }
-
-            return neighbors;
+            return _nodes[x, y, z];
         }
 
         public Vector3 GetRandomWalkableNode()

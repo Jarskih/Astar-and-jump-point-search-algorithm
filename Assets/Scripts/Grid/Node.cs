@@ -14,13 +14,8 @@ namespace Astar
         public int y => _y;
         public int z => _z;
         [SerializeField] private GameObject _nodeObject;
-
-        // Pathfinding
-        public float gCost;
-        public int hCost;
-        public float fCost => gCost + hCost;
-        public Node parentNode;
-        public int distance;
+        public GameObject nodeObject => _nodeObject;
+        
         private bool _isWalkable;
         public bool isWalkable => _isWalkable;
 
@@ -97,7 +92,7 @@ namespace Astar
             _nodeObject.GetComponent<MeshRenderer>().material.color = color;
         }
 
-        public void AddText()
+        public void AddText(float gCost, int hCost, float fCost)
         {
             var textHolder = GameObject.FindObjectOfType<UIHandler>();
             textHolder.AddText(_nodeObject, gCost, hCost, fCost);
@@ -107,6 +102,19 @@ namespace Astar
         {
             var textHolder = GameObject.FindObjectOfType<UIHandler>();
             textHolder.Reset();
+        }
+
+        public void SetWalkable(bool walkable)
+        {
+            _isWalkable = walkable;
+            if (walkable)
+            {
+                _nodeObject.GetComponent<MeshRenderer>().material = Resources.Load<Material>(Materials.Walkable);
+            }
+            else
+            {
+                _nodeObject.GetComponent<MeshRenderer>().material = Resources.Load<Material>(Materials.Blocked);
+            }
         }
     }
 }

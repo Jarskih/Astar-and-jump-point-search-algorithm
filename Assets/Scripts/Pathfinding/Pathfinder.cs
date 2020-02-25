@@ -34,7 +34,7 @@ namespace Pathfinding
 
         public void FindPath()
         {
-            _foundPath = FindPathActual(_startPosition, _endPosition);
+            _foundPath = _useJump ? FindJumpSearchPath(_startPosition, _endPosition) : FindPathActual(_startPosition, _endPosition);
 
             JobDone = true;
         }
@@ -60,9 +60,7 @@ namespace Pathfinding
             while (_openSet.Count > 0)
             {
                 PathfindingNode currentNode = _openSet[0];
-    
-              //  if (!_useJump)
-              //   {
+                
                     foreach (PathfindingNode t in _openSet)
                     {
                         //We check the costs for the current node
@@ -77,8 +75,7 @@ namespace Pathfinding
                             }
                         }
                     }
-                    // }
-                    
+
                     //we remove the current node from the open set and add to the closed set
                 _openSet.Remove(currentNode);
                 _closedSet.Add(currentNode);
@@ -90,40 +87,27 @@ namespace Pathfinding
                     _foundPath = RetracePath(start, currentNode);
                     break;
                 }
-                
-                if (currentNode.parentNode != null)
-                {
-                    currentNode.distance = currentNode.parentNode.distance + 1;
-                }
 
-                // Use optimized jump point search algorithm
-                if (_useJump)
+                //if we haven't reached our target, then we need to start looking the neighbours
+                foreach (PathfindingNode neighbour in GetAllNeighbors(currentNode, DiagonalMovement.IfAtMostOneObstacle))
                 {
-                    IdentifySuccessors(currentNode);
-                }
-                else
-                {
-                    //if we haven't reached our target, then we need to start looking the neighbours
-                    foreach (PathfindingNode neighbour in GetAllNeighbors(currentNode, DiagonalMovement.IfAtMostOneObstacle))
+                    if (!_closedSet.Contains(neighbour))
                     {
-                        if (!_closedSet.Contains(neighbour))
-                        {
-                            //we create a new movement cost for our neighbours
-                            float newMovementCostToNeighbour = currentNode.gCost + GetDistance(currentNode, neighbour);
+                        //we create a new movement cost for our neighbours
+                        float newMovementCostToNeighbour = currentNode.gCost + GetDistance(currentNode, neighbour);
 
-                            //and if it's lower than the neighbour's cost
-                            if (newMovementCostToNeighbour < neighbour.gCost || !_openSet.Contains(neighbour))
+                        //and if it's lower than the neighbour's cost
+                        if (newMovementCostToNeighbour < neighbour.gCost || !_openSet.Contains(neighbour))
+                        {
+                            //we calculate the new costs
+                            neighbour.gCost = newMovementCostToNeighbour;
+                            neighbour.hCost = GetDistance(neighbour, target);
+                            //Assign the parent node
+                            neighbour.parentNode = currentNode;
+                            //And add the neighbour node to the open set
+                            if (!_openSet.Contains(neighbour))
                             {
-                                //we calculate the new costs
-                                neighbour.gCost = newMovementCostToNeighbour;
-                                neighbour.hCost = GetDistance(neighbour, target);
-                                //Assign the parent node
-                                neighbour.parentNode = currentNode;
-                                //And add the neighbour node to the open set
-                                if (!_openSet.Contains(neighbour))
-                                {
-                                    _openSet.Add(neighbour);
-                                }
+                                _openSet.Add(neighbour);
                             }
                         }
                     }
@@ -131,6 +115,56 @@ namespace Pathfinding
             }
 
             //we return the path at the end
+            return _foundPath;
+        }
+        
+        private List<Vector3> FindJumpSearchPath(PathfindingNode start, PathfindingNode target)
+        {
+            _foundPath.Clear();
+            _openSet.Clear();
+            _closedSet.Clear();
+
+            //We start adding to the open set
+            _openSet.Add(start);
+            
+            // set the `g` and `f` value of the start node to be 0
+            start.gCost = 0;
+            start.hCost = 0;
+
+            while (_openSet.Count > 0)
+            {
+                PathfindingNode currentNode = _openSet[0];
+                
+                 foreach (PathfindingNode n in _openSet)
+                 {
+                     //We check the costs for the current node
+                     if (n.fCost < currentNode.fCost)
+                     {
+                         //and then we assign a new current node
+                         if (currentNode.x != n.x && currentNode.y != n.y && currentNode.z != n.z)
+                         {
+                             currentNode = n;
+                         }
+                     }
+                 }
+
+                 //we remove the current node from the open set and add to the closed set
+                _openSet.Remove(currentNode);
+                _closedSet.Add(currentNode);
+
+                //if the current node is the target node
+                if (currentNode.x == target.x && currentNode.y == target.y && currentNode.z == target.z)
+                {
+                    //that means we reached our destination, so we are ready to retrace our path
+                    _foundPath = RetracePath(start, currentNode);
+                    break;
+                }
+                
+                IdentifySuccessors(currentNode);
+
+            }
+
+            //return the path at the end
             return _foundPath;
         }
 
@@ -172,8 +206,6 @@ namespace Pathfinding
                 {
                     continue;
                 }
-                
-                neighbor.distance = 1;
 
                 var jumpNode = Jump(neighbor.x, neighbor.z, node.x, node.z);
                 
@@ -188,7 +220,7 @@ namespace Pathfinding
                     float ng = node.gCost + GetDistance(node, jumpNode);
 
                     //and if it's lower than the neighbour's cost
-                    if (ng < jumpNode.gCost || !_openSet.Contains(jumpNode))
+                    if (!_openSet.Contains(jumpNode) || ng < jumpNode.gCost)
                     {
                         jumpNode.gCost = ng;
                         jumpNode.hCost = GetDistance(jumpNode, _endPosition);
@@ -354,10 +386,8 @@ namespace Pathfinding
                 next = jumpStack.Pop();
 
                _pathfindingSnapShot.TakeSnapshot(next, _openSet, _closedSet);
-                
-                next.distance = GetNode(px, 0, pz).distance + 1;
-                
-                if (next == _endPosition)
+
+               if (next.x == _endPosition.x && next.y == _endPosition.y & next.z == _endPosition.z)
                 {
                     return next;
                 }
