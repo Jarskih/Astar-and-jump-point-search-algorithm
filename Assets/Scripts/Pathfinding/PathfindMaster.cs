@@ -98,9 +98,9 @@ namespace Pathfinding
             }
         }
 
-        public void RequestPathfind(Astar.Node start, Astar.Node target, PathfindingJobComplete completeCallback, bool useJumpSearch = true)
+        public void RequestPathfind(Astar.Node start, Astar.Node target, PathfindingJobComplete completeCallback, Pathfinder.DiagonalMovement diagonalMovement, bool useJumpSearch = true)
         {
-            Pathfinder newJob = new Pathfinder(new PathfindingGrid(_grid), _pathfindingSnapShot, start, target, completeCallback, useJumpSearch);
+            Pathfinder newJob = new Pathfinder(new PathfindingGrid(_grid), _pathfindingSnapShot, start, target, completeCallback, diagonalMovement, useJumpSearch);
             _todoJobs.Add(newJob);
         }
     }

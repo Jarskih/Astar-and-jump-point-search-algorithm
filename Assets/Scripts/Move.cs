@@ -8,6 +8,9 @@ namespace Astar
 {
     public class Move : MonoBehaviour
 {
+    
+    [SerializeField]
+    private Pathfinder.DiagonalMovement _diagonalMovement = Pathfinder.DiagonalMovement.IfAtMostOneObstacle;
     public List<Vector3> _path = new List<Vector3>();
     private Grid _grid;
     private Camera _camera;
@@ -44,7 +47,7 @@ namespace Astar
                 return;
             }
             _currentNode = _grid.GetNodeFromWorldPos(transform.position);
-            PathfindMaster.GetInstance().RequestPathfind(_currentNode, node, UpdatePath, jumpSearch);
+            PathfindMaster.GetInstance().RequestPathfind(_currentNode, node, UpdatePath, _diagonalMovement, jumpSearch);
         }
 
         if (Input.GetKeyDown(KeyCode.RightArrow))
@@ -57,7 +60,7 @@ namespace Astar
     {
         var targetNode = _grid.GetNodeFromWorldPos(target.transform.position);
         var currentNode = _grid.GetNodeFromWorldPos(transform.position);
-        PathfindMaster.GetInstance().RequestPathfind(currentNode, targetNode, UpdatePath, jumpSearch);
+        PathfindMaster.GetInstance().RequestPathfind(currentNode, targetNode, UpdatePath, _diagonalMovement, jumpSearch);
     }
 
     private void UpdatePath(List<Vector3> path)

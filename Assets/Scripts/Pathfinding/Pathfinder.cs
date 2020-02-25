@@ -4,6 +4,11 @@ using Node = Astar.Node;
 
 namespace Pathfinding
 {
+    /// <summary>
+    /// Pathfinding for both A* and JumpSearch
+    /// </summary>
+    
+    
     public class Pathfinder
     {
         private PathfindingGrid _grid;
@@ -11,6 +16,7 @@ namespace Pathfinding
         private readonly PathfindingNode _endPosition;
         private float _targetDistance;
         public volatile bool JobDone = false;
+        private readonly DiagonalMovement _diagonalMovement;
         private readonly bool _useJump; // Use optimized jump point algorithm
         private readonly PathfindMaster.PathfindingJobComplete _completeCallback;
         private List<Vector3> _foundPath = new List<Vector3>();
@@ -19,10 +25,9 @@ namespace Pathfinding
         private HashSet<PathfindingNode> _closedSet = new HashSet<PathfindingNode>();
         private Stack<PathfindingNode> jumpStack = new Stack<PathfindingNode>();
         private List<PathfindingNode> _retList = new List<PathfindingNode>();
-
         private PathfindingSnapShot _pathfindingSnapShot;
 
-        public Pathfinder(PathfindingGrid grid, PathfindingSnapShot pathfindingSnapShot, Node start, Node target, PathfindMaster.PathfindingJobComplete callback, bool pUseJump = false)
+        public Pathfinder(PathfindingGrid grid, PathfindingSnapShot pathfindingSnapShot, Node start, Node target, PathfindMaster.PathfindingJobComplete callback, DiagonalMovement diagonalMovement, bool pUseJump = false)
         {
             _grid = grid;
             _startPosition = new PathfindingNode(start.x,start.y,start.z,start.isWalkable);
@@ -30,7 +35,16 @@ namespace Pathfinding
             _completeCallback = callback;
             _useJump = pUseJump;
             _pathfindingSnapShot = pathfindingSnapShot;
+            _diagonalMovement = diagonalMovement;
         }
+        
+        // The rules for moving diagonally
+        public enum DiagonalMovement {
+            Always,
+            Never,
+            IfAtMostOneObstacle,
+            OnlyWhenNoObstacles,
+        };
 
         public void FindPath()
         {
@@ -89,7 +103,7 @@ namespace Pathfinding
                 }
 
                 //if we haven't reached our target, then we need to start looking the neighbours
-                foreach (PathfindingNode neighbour in GetAllNeighbors(currentNode, DiagonalMovement.IfAtMostOneObstacle))
+                foreach (PathfindingNode neighbour in GetAllNeighbors(currentNode, _diagonalMovement))
                 {
                     if (!_closedSet.Contains(neighbour))
                     {
@@ -340,7 +354,7 @@ namespace Pathfinding
             // return all neighbors without pruning
             else
             {
-                _retList = GetAllNeighbors(node, DiagonalMovement.IfAtMostOneObstacle);
+                _retList = GetAllNeighbors(node, _diagonalMovement);
             }
             return _retList;
         }
@@ -635,13 +649,6 @@ namespace Pathfinding
             return JumpAlwaysDiagonal(x + dx, z + dz, x, z);
         }
 
-        private enum DiagonalMovement {
-            Always,
-            Never,
-            IfAtMostOneObstacle,
-            OnlyWhenNoObstacles,
-        };
-        
         /**
         * Get the neighbors of the given node.
         *

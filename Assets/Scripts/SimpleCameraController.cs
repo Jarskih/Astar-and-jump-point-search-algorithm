@@ -8,10 +8,10 @@ namespace FlatEarth
         {
             public float yaw;
             public float pitch;
-            public float roll;
-            public float x;
-            public float y;
-            public float z;
+            private float roll;
+            private float x;
+            private float y;
+            private float z;
 
             public void SetFromTransform(Transform t)
             {
