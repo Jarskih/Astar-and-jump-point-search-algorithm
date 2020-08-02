@@ -13,6 +13,9 @@ namespace Astar
         private Pathfinding.PathfindMaster _pathfindMaster;
         private int _numberOfStars = 5;
         private EditGrid _editGrid;
+        
+        [SerializeField] private bool _useJPS;
+        [SerializeField] private bool _debugPathfinding;// Toggle to use jump point search instead of A*
         void Start()
         {
             // Add components
@@ -58,7 +61,7 @@ namespace Astar
             _editGrid.Tick();
             foreach (var entity in EntityController.GetEnties())
             {
-                entity.Tick();
+                entity.Tick(_useJPS, _debugPathfinding);
             }
         }
     }

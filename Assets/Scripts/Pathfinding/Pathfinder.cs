@@ -15,16 +15,19 @@ namespace Pathfinding
         private readonly PathfindingNode _startPosition;
         private readonly PathfindingNode _endPosition;
         private float _targetDistance;
-        public volatile bool JobDone = false;
+        public volatile bool JobDone;
         private readonly DiagonalMovement _diagonalMovement;
-        private readonly bool _useJump; // Use optimized jump point algorithm
+        private readonly bool _useJump; // Flag to use optimized jump point algorithm
         private readonly PathfindMaster.PathfindingJobComplete _completeCallback;
         private List<Vector3> _foundPath = new List<Vector3>();
+        
         //We need two lists, one for the nodes we need to check and one for the nodes we've already checked
         private List<PathfindingNode> _openSet = new List<PathfindingNode>();
         private HashSet<PathfindingNode> _closedSet = new HashSet<PathfindingNode>();
+        // Stack of jump search nodes
         private Stack<PathfindingNode> jumpStack = new Stack<PathfindingNode>();
         private List<PathfindingNode> _retList = new List<PathfindingNode>();
+        // Store pathfinding steps for debugging
         private PathfindingSnapShot _pathfindingSnapShot;
 
         public Pathfinder(PathfindingGrid grid, PathfindingSnapShot pathfindingSnapShot, Node start, Node target, PathfindMaster.PathfindingJobComplete callback, DiagonalMovement diagonalMovement, bool pUseJump = false)
@@ -46,6 +49,7 @@ namespace Pathfinding
             OnlyWhenNoObstacles,
         };
 
+        // Starts pathfinding
         public void FindPath()
         {
             _foundPath = _useJump ? FindJumpSearchPath(_startPosition, _endPosition) : FindPathActual(_startPosition, _endPosition);
@@ -53,11 +57,14 @@ namespace Pathfinding
             JobDone = true;
         }
 
+        // Callback after finding path
         public void NotifyComplete()
         {
             _completeCallback.Invoke(_foundPath);
         }
         
+        
+        // Find path using A*
         private List<Vector3> FindPathActual(PathfindingNode start, PathfindingNode target)
         {
             _foundPath.Clear();
@@ -126,12 +133,14 @@ namespace Pathfinding
                         }
                     }
                 }
+                _pathfindingSnapShot.TakeSnapshot(currentNode, _openSet, _closedSet);
             }
 
             //we return the path at the end
             return _foundPath;
         }
         
+        // Find path using JPS (Jump point search)
         private List<Vector3> FindJumpSearchPath(PathfindingNode start, PathfindingNode target)
         {
             _foundPath.Clear();
@@ -181,21 +190,20 @@ namespace Pathfinding
             //return the path at the end
             return _foundPath;
         }
-
+        
         private List<Vector3> RetracePath(PathfindingNode startNode, PathfindingNode endNode)
         {
-            //Retrace the path, is basically going from the endNode to the startNode
+            //Retrace the path going from the endNode to the startNode
             List<Vector3> path = new List<Vector3>();
             PathfindingNode currentNode = endNode;
 
             while (currentNode != startNode)
             {
                 path.Add(new Vector3(currentNode.x,currentNode.y, currentNode.z));
-                //by taking the parentNodes we assigned
                 currentNode = currentNode.parentNode;
             }
 
-            //then we simply reverse the list
+            //reverse the list to get nodes in right order
             path.Reverse();
 
             return path;

@@ -27,13 +27,14 @@ namespace Astar
         private Vector3 _targetPos;
         private Entity _target;
         private Vector3 _restPos;
-        public bool controlled;
+        private bool _controlled;
         
         private Entity _tradingPost;
         private Entity _fallenStar;
         private Entity _spaceShip;
-        [SerializeField] bool _useJumpSearch;
+        private bool _useJumpSearch;
         private float _restSpeed = 5;
+        private bool _aiActive;
 
         public void Init(Grid grid, EntityType entityType, bool AIActive)
         {
@@ -46,21 +47,32 @@ namespace Astar
 
             _stateController.Init(this);
             _move.Init(grid, AIActive);
+            _aiActive = AIActive;
         }
         
-        public void Tick()
+        public void Tick(bool useJumpSearch, bool debugPathfinding)
         {
-            if (!controlled)
+            if (!_aiActive)
             {
-                _stateController.Tick();
+                return;
             }
-            else
+            
+            _useJumpSearch = useJumpSearch;
+            _controlled = debugPathfinding;
+
+            if (_controlled)
             {
+                // If debugging use mouse to move entity
                 _move.Tick(_useJumpSearch);
                 if (_move.HasPath())
                 {
                     MoveAlongPath();
                 }
+            }
+            else
+            {
+                // Use AI to move entity
+                _stateController.Tick();
             }
         }
 

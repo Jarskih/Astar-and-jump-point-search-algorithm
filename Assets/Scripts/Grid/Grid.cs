@@ -210,7 +210,7 @@ namespace Astar
         {
             foreach (var n in _nodes)
             {
-                n.SetColor(Color.white);
+                n.UpdateColor();
             }
         }
 

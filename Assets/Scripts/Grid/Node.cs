@@ -107,7 +107,12 @@ namespace Astar
         public void SetWalkable(bool walkable)
         {
             _isWalkable = walkable;
-            if (walkable)
+            UpdateColor();
+        }
+
+        public void UpdateColor()
+        {
+            if (_isWalkable)
             {
                 _nodeObject.GetComponent<MeshRenderer>().material = Resources.Load<Material>(Materials.Walkable);
             }

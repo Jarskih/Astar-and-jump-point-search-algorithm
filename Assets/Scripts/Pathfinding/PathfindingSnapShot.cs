@@ -66,20 +66,20 @@ namespace Pathfinding
                 foreach (var node in snapshots[index].openList)
                 {
                     var n = _grid.GetNode(node.x, node.y, node.z);
-                    n.SetColor(Color.white);
+                    n.UpdateColor();
                     n.ResetText();
                 }
 
                 foreach (var node in snapshots[index].closedList)
                 {
                     var n = _grid.GetNode(node.x, node.y, node.z);
-                    n.SetColor(Color.white);
+                    n.UpdateColor();
                     n.ResetText();
                 }
             
                 var currentNode = snapshots[index].currentNode;
-                var gridnode = _grid.GetNode(currentNode.x, currentNode.y, currentNode.z);
-                gridnode.SetColor(Color.white);
+                var gridNode = _grid.GetNode(currentNode.x, currentNode.y, currentNode.z);
+                gridNode.UpdateColor();
                 index++;
             }
             else
@@ -87,6 +87,12 @@ namespace Pathfinding
                 index = 0;
                 snapshots.Clear();
             }
+        }
+
+        public void Clear()
+        {
+            index = 0;
+            snapshots.Clear();
         }
 
         public void NextState()
